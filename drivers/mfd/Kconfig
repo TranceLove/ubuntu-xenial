@@ -147,13 +147,24 @@ config MFD_AXP20X_I2C
 	tristate "X-Powers AXP series PMICs with I2C"
 	select MFD_AXP20X
 	select REGMAP_I2C
-	depends on I2C
+	# In order for the ACPI Opregion this provides on x86 to be available
+	# the i2c-adapter driver must be builtin too, select it and its deps
+	depends on X86=n || (ACPI && HAS_IOMEM)
+	select I2C
+	select IOSF_MBI if X86
+	select COMMON_CLK if X86
+	select I2C_DESIGNWARE_PLATFORM if X86
+	select I2C_DESIGNWARE_BAYTRAIL if X86
 	help
 	  If you say Y here you get support for the X-Powers AXP series power
 	  management ICs (PMICs) controlled with I2C.
 	  This driver include only the core APIs. You have to select individual
 	  components like regulators or the PEK (Power Enable Key) under the
 	  corresponding menus.
+
+	  Note on x86 this provides an ACPI Opregion, so this must be 'y'
+	  (builtin) and not a module, as the OPregion must be available as
+	  soon as possible.
 
 config MFD_AXP20X_RSB
 	tristate "X-Powers AXP series PMICs with RSB"
