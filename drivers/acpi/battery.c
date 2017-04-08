@@ -73,6 +73,7 @@ enum init_state_enum { BAT_NONE, BAT_INITIALIZED, BAT_EXITED };
 static enum init_state_enum init_state;
 static DEFINE_MUTEX(init_state_mutex);
 static async_cookie_t async_cookie;
+static bool battery_driver_registered;
 static int battery_bix_broken_package;
 static int battery_notification_delay_ms;
 static unsigned int cache_time = 1000;
@@ -1335,6 +1336,7 @@ static void __init acpi_battery_init_async(void *unused, async_cookie_t cookie)
 	if (result < 0)
 		acpi_unlock_battery_dir(acpi_battery_dir);
 #endif
+	battery_driver_registered = (result == 0);
 }
 
 static int __init acpi_battery_init(void)
@@ -1346,28 +1348,15 @@ static int __init acpi_battery_init(void)
 	return 0;
 }
 
-void acpi_battery_unregister(void)
-{
-	/* Check if _init() is done and only do unregister once */
-	mutex_lock(&init_state_mutex);
-	if (init_state != BAT_INITIALIZED)
-		goto out_exit;
-
-	async_synchronize_cookie(async_cookie + 1);
-	acpi_bus_unregister_driver(&acpi_battery_driver);
-#ifdef CONFIG_ACPI_PROCFS_POWER
-	acpi_unlock_battery_dir(acpi_battery_dir);
-#endif
-
-out_exit:
-	init_state = BAT_EXITED;
-	mutex_unlock(&init_state_mutex);
-}
-EXPORT_SYMBOL_GPL(acpi_battery_unregister);
-
 static void __exit acpi_battery_exit(void)
 {
-	acpi_battery_unregister();
+	async_synchronize_cookie(async_cookie + 1);
+	if (battery_driver_registered)
+		acpi_bus_unregister_driver(&acpi_battery_driver);
+#ifdef CONFIG_ACPI_PROCFS_POWER
+	if (acpi_battery_dir)
+		acpi_unlock_battery_dir(acpi_battery_dir);
+#endif
 }
 
 module_init(acpi_battery_init);
