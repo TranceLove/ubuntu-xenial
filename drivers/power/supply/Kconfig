@@ -511,4 +511,11 @@ config AXP20X_POWER
 	  This driver provides support for the power supply features of
 	  AXP20x PMIC.
 
+config BATTERY_MAX17047
+	tristate "Maxim MAX17047 fuel gauge driver"
+	depends on I2C
+	help
+	  Say Y here to enable support for battery monitoring with
+	  Maxim MAX17047 fuel gauge chips.
+
 endif # POWER_SUPPLY
