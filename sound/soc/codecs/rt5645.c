@@ -3648,9 +3648,20 @@ static struct rt5645_platform_data gpd_win_platform_data = {
 
 static const struct dmi_system_id dmi_platform_gpd_win[] = {
 	{
+		/*
+		 * Match for the GPDwin which unfortunately uses somewhat
+		 * generic dmi strings, which is why we test for 4 strings.
+		 * Comparing against 15 other byt/cht boards, board_vendor
+		 * and board_name are unique to the GPDwin, where as only one
+		 * other board has the same board_serial and 2 others have
+		 * the same default product_name.
+		 */
 		.ident = "GPD Win",
 		.matches = {
-			DMI_MATCH(DMI_PRODUCT_NAME, "GPD-WINI55"),
+			DMI_MATCH(DMI_BOARD_VENDOR, "AMI Corporation"),
+			DMI_MATCH(DMI_BOARD_NAME, "Default string"),
+			DMI_MATCH(DMI_BOARD_SERIAL, "Default string"),
+			DMI_MATCH(DMI_PRODUCT_NAME, "Default string"),
 		},
 	},
 	{}
@@ -3709,7 +3720,7 @@ static int rt5645_i2c_probe(struct i2c_client *i2c,
 	else if (dmi_check_system(dmi_platform_intel_cht))
 		rt5645->pdata = general_platform_data2;
 	else if (dmi_check_system(dmi_platform_gpd_win))
-		rt5645->pdata = gpd_win_platform_data;		
+		rt5645->pdata = gpd_win_platform_data;
 	else
 		rt5645->pdata.jd_mode = 3;
 
