@@ -100,6 +100,12 @@ static const struct acpi_device_id battery_device_ids[] = {
 
 MODULE_DEVICE_TABLE(acpi, battery_device_ids);
 
+/* Lists of PMIC ACPI HIDs with an (often better) native battery driver */
+static const char * const acpi_battery_blacklist[] = {
+	"INT33F4", /* X-Powers AXP288 PMIC */
+	NULL
+};
+
 enum {
 	ACPI_BATTERY_ALARM_PRESENT,
 	ACPI_BATTERY_XINFO_PRESENT,
@@ -1322,7 +1328,15 @@ static struct acpi_driver acpi_battery_driver = {
 
 static void __init acpi_battery_init_async(void *unused, async_cookie_t cookie)
 {
-	int result;
+	int i, result;
+
+	for (i = 0; acpi_battery_blacklist[i]; i++)
+		if (acpi_dev_present(acpi_battery_blacklist[i], "1", -1)) {
+			pr_info("ACPI: %s: found native %s PMIC, not loading\n",
+				ACPI_BATTERY_DEVICE_NAME,
+				acpi_battery_blacklist[i]);
+			return;
+		}
 
 	dmi_check_system(bat_dmi_table);
 
