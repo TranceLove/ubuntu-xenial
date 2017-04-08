@@ -464,7 +464,7 @@ out_unlock:
 	return ret;
 }
 
-void acpi_ac_unregister((void)
+void acpi_ac_unregister(void)
 {
 	/* Check if _init() is done and only do unregister once */
 	mutex_lock(&init_state_mutex);

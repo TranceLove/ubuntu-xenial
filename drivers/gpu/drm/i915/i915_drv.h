@@ -662,6 +662,7 @@ struct intel_csr {
 #define DEV_INFO_FOR_EACH_FLAG(func) \
 	/* Keep is_* in chronological order */ \
 	func(is_mobile); \
+	func(is_lp); \
 	func(is_i85x); \
 	func(is_i915g); \
 	func(is_i945gm); \
@@ -2541,6 +2542,9 @@ intel_info(const struct drm_i915_private *dev_priv)
 #define IS_GEN7(dev_priv)	(!!((dev_priv)->info.gen_mask & BIT(6)))
 #define IS_GEN8(dev_priv)	(!!((dev_priv)->info.gen_mask & BIT(7)))
 #define IS_GEN9(dev_priv)	(!!((dev_priv)->info.gen_mask & BIT(8)))
+
+#define IS_GEN9_LP(dev_priv) (IS_GEN9(dev_priv) && INTEL_INFO(dev_priv)->is_lp)
+#define IS_LP(dev_priv) (INTEL_INFO(dev_priv)->is_lp)
 
 #define ENGINE_MASK(id)	BIT(id)
 #define RENDER_RING	ENGINE_MASK(RCS)
