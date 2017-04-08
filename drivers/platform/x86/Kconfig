@@ -1081,6 +1081,14 @@ config CHT_VGPIO
 	---help---
 	  This is a hack, and should die.
 
+config INTEL_CHT_USB_MUX
+	tristate "Intel Cherrytrail USB mux driver"
+	depends on ACPI && X86 && EXTCON
+	help
+	  This driver adds support for the internal USB mux for muxing the OTG
+	  USB data lines between the xHCI host controller and the dwc3 gadget
+	  controller found on Intel Cherrytrail SoCs.
+
 config SILEAD_DMI
 	bool "Tablets with Silead touchscreens"
 	depends on ACPI && DMI && I2C=y && INPUT
