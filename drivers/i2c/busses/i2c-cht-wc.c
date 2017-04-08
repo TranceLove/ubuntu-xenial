@@ -24,6 +24,7 @@
 #include <linux/mfd/intel_soc_pmic.h>
 #include <linux/module.h>
 #include <linux/platform_device.h>
+#include <linux/power/acpi.h>
 #include <linux/slab.h>
 
 #define CHT_WC_I2C_CTRL			0x5e24
@@ -292,6 +293,12 @@ static int cht_wc_i2c_adap_i2c_probe(struct platform_device *pdev)
 		ret = -ENOMEM;
 		goto del_adapter;
 	}
+
+	/*
+	 * Unregister the broken ACPI AC mains device the BIOS registers, the
+	 * bq24190_charger driver will signal power (un)plug to userspace.
+	 */
+	acpi_ac_unregister();
 
 	platform_set_drvdata(pdev, adap);
 	return 0;
