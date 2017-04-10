@@ -1222,7 +1222,7 @@ static irqreturn_t bq24190_irq_handler_thread(int irq, void *data)
 		if ((bdi->ss_reg & ~battery_mask_ss) != (ss_reg & ~battery_mask_ss))
 			alert_charger = true;
 		bdi->ss_reg = ss_reg;
-	}	
+	}
 
 	if (alert_charger)
 		power_supply_changed(bdi->charger);
@@ -1404,15 +1404,17 @@ static int bq24190_probe(struct i2c_client *client,
 
 out4:
 	bq24190_sysfs_remove_group(bdi);
+
 out3:
 	power_supply_unregister(bdi->battery);
+
 out2:
 	power_supply_unregister(bdi->charger);
+
 out1:
 	pm_runtime_disable(dev);
 	if (bdi->gpio_int)
 		gpio_free(bdi->gpio_int);
-
 	return ret;
 }
 
