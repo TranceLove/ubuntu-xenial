@@ -122,6 +122,11 @@ static const struct acpi_device_id always_present_device_ids[] = {
 	 * but Linux uses a separate pwm driver, harmless if not used.
 	 */
 	{ "80862288", },
+	/*
+	 * The INT0002 device is necessary to clear wakeup interrupt sources
+	 * on Cherry Trail devices, without it we get nobody cared IRQ msgs.
+	 */
+	{ "INT0002", },
 	{ }
 };
 
