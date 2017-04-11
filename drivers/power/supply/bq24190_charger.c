@@ -1385,9 +1385,11 @@ static int bq24190_hw_init(struct bq24190_dev_info *bdi)
  		return -ENODEV;
 	}
 
-	ret = bq24190_register_reset(bdi);
-	if (ret < 0)
-		return ret;
+	if (device_property_read_bool(bdi->dev, "reset-on-probe")) {
+		ret = bq24190_register_reset(bdi);
+		if (ret < 0)
+			return ret;
+	}
 
 	ret = bq24190_set_mode_host(bdi);
 	if (ret < 0)
@@ -1497,7 +1499,7 @@ static int bq24190_probe(struct i2c_client *client,
 		INIT_DELAYED_WORK(&bdi->extcon_work, bq24190_extcon_work);
 		bdi->extcon_nb.notifier_call = bq24190_extcon_event;
 		ret = devm_extcon_register_notifier_all(dev, bdi->extcon,
-												&bdi->extcon_nb); 
+												&bdi->extcon_nb);
 		if (ret)
 			goto out5;
 
@@ -1541,7 +1543,8 @@ static int bq24190_remove(struct i2c_client *client)
 		pm_runtime_put_noidle(bdi->dev);
 	}
 
-	bq24190_register_reset(bdi);
+	if (device_property_read_bool(bdi->dev, "reset-on-probe"))
+		bq24190_register_reset(bdi);
 	bq24190_sysfs_remove_group(bdi);
 	power_supply_unregister(bdi->battery);
 	power_supply_unregister(bdi->charger);
@@ -1594,7 +1597,8 @@ static int __maybe_unused bq24190_pm_suspend(struct device *dev)
 		pm_runtime_put_noidle(bdi->dev);
 	}
 
-	bq24190_register_reset(bdi);
+	if (device_property_read_bool(bdi->dev, "reset-on-probe"))
+		bq24190_register_reset(bdi);
 
 	if (error >= 0) {
 		pm_runtime_mark_last_busy(bdi->dev);
@@ -1619,8 +1623,10 @@ static __maybe_unused int bq24190_pm_resume(struct device *dev)
 		pm_runtime_put_noidle(bdi->dev);
 	}
 
-	bq24190_register_reset(bdi);
-	bq24190_set_mode_host(bdi);
+	if (device_property_read_bool(bdi->dev, "reset-on-probe")) {
+		bq24190_register_reset(bdi);
+		bq24190_set_mode_host(bdi);
+	}
 	bq24190_read(bdi, BQ24190_REG_SS, &bdi->ss_reg);
 
 	if (error >= 0) {
