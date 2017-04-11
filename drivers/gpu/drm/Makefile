@@ -91,3 +91,4 @@ obj-$(CONFIG_DRM_ARCPGU)+= arc/
 obj-y			+= hisilicon/
 obj-$(CONFIG_DRM_ZTE)	+= zte/
 obj-$(CONFIG_DRM_MXSFB)	+= mxsfb/
+obj-$(CONFIG_DRM_GM12U320) += gm12u320/
