@@ -1269,8 +1269,12 @@ static void bq24190_check_status(struct bq24190_dev_info *bdi)
 
 	if (alert_charger)
 		power_supply_changed(bdi->charger);
-	if (alert_battery)
-		power_supply_changed(bdi->battery);
+	if (alert_battery) {
+		if (bdi->battery)
+			power_supply_changed(bdi->battery);
+		else
+			power_supply_changed(bdi->charger);
+	}
 
 	dev_dbg(bdi->dev, "ss_reg: 0x%02x, f_reg: 0x%02x\n", ss_reg, f_reg);
 }
@@ -1469,13 +1473,23 @@ static int bq24190_probe(struct i2c_client *client,
 		goto out2;
 	}
 
-	battery_cfg.drv_data = bdi;
-	bdi->battery = power_supply_register(dev, &bq24190_battery_desc,
-						&battery_cfg);
-	if (IS_ERR(bdi->battery)) {
-		dev_err(dev, "Can't register battery\n");
-		ret = PTR_ERR(bdi->battery);
-		goto out3;
+	/*
+	 * The disable-battery-power-supply-iface is purely a temporary in
+	 * kernel interface for platform-code to use if it knows that there
+	 * will be a fuel-gauge which will supply a battery interface. The long
+	 * term plan is for all properties to move to the charger interface
+	 * and for the battery interface to be removed completely.
+	 */
+	if (!device_property_read_bool(bdi->dev,
+				       "disable-battery-power-supply-iface")) {
+		battery_cfg.drv_data = bdi;
+		bdi->battery = power_supply_register(dev, &bq24190_battery_desc,
+						     &battery_cfg);
+		if (IS_ERR(bdi->battery)) {
+			dev_err(dev, "Can't register battery\n");
+			ret = PTR_ERR(bdi->battery);
+			goto out3;
+		}
 	}
 
 	ret = bq24190_sysfs_create_group(bdi);
@@ -1518,7 +1532,8 @@ out5:
 	bq24190_sysfs_remove_group(bdi);
 
 out4:
-	power_supply_unregister(bdi->battery);
+	if (bdi->battery)
+		power_supply_unregister(bdi->battery);
 
 out3:
 	power_supply_unregister(bdi->charger);
@@ -1546,7 +1561,8 @@ static int bq24190_remove(struct i2c_client *client)
 	if (device_property_read_bool(bdi->dev, "reset-on-probe"))
 		bq24190_register_reset(bdi);
 	bq24190_sysfs_remove_group(bdi);
-	power_supply_unregister(bdi->battery);
+	if (bdi->battery)
+		power_supply_unregister(bdi->battery);
 	power_supply_unregister(bdi->charger);
 	if (error >= 0)
 		pm_runtime_put_sync(bdi->dev);
@@ -1636,7 +1652,8 @@ static __maybe_unused int bq24190_pm_resume(struct device *dev)
 
 	/* Things may have changed while suspended so alert upper layer */
 	power_supply_changed(bdi->charger);
-	power_supply_changed(bdi->battery);
+	if (bdi->battery)
+		power_supply_changed(bdi->battery);
 
 	return 0;
 }
