@@ -1233,7 +1233,7 @@ static void bq24190_check_status(struct bq24190_dev_info *bdi)
 				!!(f_reg & BQ24190_REG_F_BOOST_FAULT_MASK),
 				!!(f_reg & BQ24190_REG_F_CHRG_FAULT_MASK),
 				!!(f_reg & BQ24190_REG_F_BAT_FAULT_MASK),
-				!!(f_reg & BQ24190_REG_F_NTC_FAULT_MASK)); 
+				!!(f_reg & BQ24190_REG_F_NTC_FAULT_MASK));
 
 		mutex_lock(&bdi->f_reg_lock);
 		if ((bdi->f_reg & battery_mask_f) != (f_reg & battery_mask_f))
@@ -1496,8 +1496,8 @@ static int bq24190_probe(struct i2c_client *client,
 	if (bdi->extcon) {
 		INIT_DELAYED_WORK(&bdi->extcon_work, bq24190_extcon_work);
 		bdi->extcon_nb.notifier_call = bq24190_extcon_event;
-		ret = devm_extcon_register_notifier(dev, bdi->extcon, -1,
-						    &bdi->extcon_nb);
+		ret = devm_extcon_register_notifier_all(dev, bdi->extcon,
+												&bdi->extcon_nb); 
 		if (ret)
 			goto out5;
 
