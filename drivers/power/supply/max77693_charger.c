@@ -254,6 +254,10 @@ static int max77693_charger_get_property(struct power_supply *psy,
 	return ret;
 }
 
+static char *max77693_charger_supplied_to[] = {
+	"main-battery",
+};
+
 static const struct power_supply_desc max77693_charger_desc = {
 	.name		= MAX77693_CHARGER_NAME,
 	.type		= POWER_SUPPLY_TYPE_BATTERY,
@@ -697,6 +701,8 @@ static int max77693_charger_probe(struct platform_device *pdev)
 	if (ret)
 		return ret;
 
+	psy_cfg.supplied_to = max77693_charger_supplied_to;
+	psy_cfg.num_supplicants = ARRAY_SIZE(max77693_charger_supplied_to),
 	psy_cfg.drv_data = chg;
 
 	ret = device_create_file(&pdev->dev, &dev_attr_fast_charge_timer);
