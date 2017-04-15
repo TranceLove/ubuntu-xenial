@@ -227,7 +227,7 @@ static int max17042_get_property(struct power_supply *psy,
 		ret = max17042_get_status(chip, &val->intval);
 		if (ret < 0)
 			return ret;
-		break;		
+		break;
 	case POWER_SUPPLY_PROP_PRESENT:
 		ret = regmap_read(map, MAX17042_STATUS, &data);
 		if (ret < 0)
@@ -427,6 +427,11 @@ static int max17042_property_is_writeable(struct power_supply *psy,
 	}
 
 	return ret;
+}
+
+static void max17042_external_power_changed(struct power_supply *psy)
+{
+	power_supply_changed(psy);
 }
 
 static int max17042_write_verify_reg(struct regmap *map, u8 reg, u32 value)
@@ -917,6 +922,7 @@ static const struct power_supply_desc max17042_psy_desc = {
 	.get_property	= max17042_get_property,
 	.set_property	= max17042_set_property,
 	.property_is_writeable	= max17042_property_is_writeable,
+	.external_power_changed	= max17042_external_power_changed,
 	.properties	= max17042_battery_props,
 	.num_properties	= ARRAY_SIZE(max17042_battery_props),
 };
