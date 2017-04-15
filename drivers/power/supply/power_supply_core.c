@@ -285,7 +285,7 @@ struct am_i_supplied_data {
 	unsigned int count;
 };
 
-static int __power_supply_am_i_supplied(struct device *dev, void *data)
+static int __power_supply_am_i_supplied(struct device *dev, void *_data)
 {
 	union power_supply_propval ret = {0,};
 	struct power_supply *epsy = dev_get_drvdata(dev);
