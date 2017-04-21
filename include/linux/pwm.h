@@ -616,21 +616,21 @@ struct pwm_lookup {
 	const char *module_name; /* Optional may be NULL */
 };
 
-#define PWM_LOOKUP_MODNAME(_provider, _index, _dev_id, _con_id, _period, \
-			   _polarity, _module_name) \
-	{						\
-		.provider = _provider,			\
-		.index = _index,			\
-		.dev_id = _dev_id,			\
-		.con_id = _con_id,			\
-		.period = _period,			\
-		.polarity = _polarity,			\
-		.module_name = _module_name		\
+#define PWM_LOOKUP_WITH_MODULE(_provider, _index, _dev_id, _con_id,	\
+			       _period, _polarity, _module)						\
+	{		   														\
+		.provider = _provider,										\
+		.index = _index,											\
+		.dev_id = _dev_id,											\
+		.con_id = _con_id,											\
+		.period = _period,											\
+		.polarity = _polarity,										\
+		.module = _module,											\
 	}
 
 #define PWM_LOOKUP(_provider, _index, _dev_id, _con_id, _period, _polarity) \
-	PWM_LOOKUP_MODNAME(_provider, _index, _dev_id, _con_id, _period, \
-			   _polarity, NULL)
+	PWM_LOOKUP_WITH_MODULE(_provider, _index, _dev_id, _con_id, _period, \
+			       _polarity, NULL)
 
 #if IS_ENABLED(CONFIG_PWM)
 void pwm_add_table(struct pwm_lookup *table, size_t num);
