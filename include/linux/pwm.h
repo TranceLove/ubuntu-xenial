@@ -613,7 +613,7 @@ struct pwm_lookup {
 	const char *con_id;
 	unsigned int period;
 	enum pwm_polarity polarity;
-	const char *module_name; /* Optional may be NULL */
+	const char *module; /* Optional may be NULL */
 };
 
 #define PWM_LOOKUP_WITH_MODULE(_provider, _index, _dev_id, _con_id,	\

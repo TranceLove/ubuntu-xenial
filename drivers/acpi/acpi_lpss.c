@@ -173,8 +173,9 @@ static void byt_i2c_setup(struct lpss_private_data *pdata)
 
 /* BSW PWM used for backlight control by the i915 driver */
 static struct pwm_lookup bsw_pwm_lookup[] = {
-	PWM_LOOKUP("80862288:00", 0, "0000:00:02.0", "pwm_backlight", 0,
-		   PWM_POLARITY_NORMAL),
+	PWM_LOOKUP_WITH_MODULE("80862288:00", 0, "0000:00:02.0",
+		   "pwm_backlight", 0, PWM_POLARITY_NORMAL,
+                   "pwm-lpss-platform"),
 };
 
 static void bsw_pwm_setup(struct lpss_private_data *pdata)
