@@ -17,9 +17,6 @@
 #include <linux/slab.h>
 #include <linux/workqueue.h>
 
-//REMOVE ME
-#define dev_dbg dev_info
-
 #define REG_DEVICE_ID				0x01
 #define DEVICE_ID_VER_MASK			GENMASK(7, 4)
 #define DEVICE_ID_FUSB302_VER			0x80
@@ -220,7 +217,7 @@ static void fusb302_disable(struct fusb302_data *data)
 	fusb302_update_bits(data, REG_CONTROL2, CONTROL2_TOGGLE, 0);
 }
 
-/* 
+/*
  * fusb302_set_state() and fusb302_handle_event() implement the 3 state
  * machines from the datasheet folded into 1 state-machine for code re-use.
  */
@@ -594,7 +591,7 @@ static int fusb302_remove(struct i2c_client *client)
 {
 	struct fusb302_data *data = i2c_get_clientdata(client);
 
-	devm_free_irq(data->dev, client->irq, data);	
+	devm_free_irq(data->dev, client->irq, data);
 	cancel_delayed_work_sync(&data->timeout);
 	cancel_delayed_work_sync(&data->fallback_timeout);
 

@@ -317,35 +317,6 @@ static int cht_wc_extcon_usbc_evt(struct notifier_block *nb,
 	return NOTIFY_OK;
 }
 
-/* usb_id sysfs attribute for debug / testing purposes */
-static ssize_t usb_id_show(struct device *dev, struct device_attribute *attr,
-			   char *buf)
-{
-	struct cht_wc_extcon_data *ext = dev_get_drvdata(dev);
-
-	return sprintf(buf, "%s\n", usb_id_str[ext->usb_id]);
-}
-
-static ssize_t usb_id_store(struct device *dev, struct device_attribute *attr,
-			    const char *buf, size_t n)
-{
-	struct cht_wc_extcon_data *ext = dev_get_drvdata(dev);
-	int i;
-
-	for (i = 0; i < ARRAY_SIZE(usb_id_str); i++) {
-		if (sysfs_streq(buf, usb_id_str[i])) {
-			dev_info(ext->dev, "New usb_id %s\n", usb_id_str[i]);
-			ext->usb_id = i;
-			cht_wc_extcon_pwrsrc_event(ext);
-			return n;
-		}
-	}
-
-	return -EINVAL;
-}
-
-static DEVICE_ATTR(usb_id, 0644, usb_id_show, usb_id_store);
-
 static int cht_wc_extcon_sw_control(struct cht_wc_extcon_data *ext, bool enable)
 {
 	int ret, mask, val;
@@ -456,7 +427,6 @@ static int cht_wc_extcon_probe(struct platform_device *pdev)
 	schedule_work(&ext->work);
 
 	platform_set_drvdata(pdev, ext);
-	device_create_file(ext->dev, &dev_attr_usb_id);
 
 	return 0;
 
@@ -469,7 +439,6 @@ static int cht_wc_extcon_remove(struct platform_device *pdev)
 {
 	struct cht_wc_extcon_data *ext = platform_get_drvdata(pdev);
 
-	device_remove_file(ext->dev, &dev_attr_usb_id);
 	cht_wc_extcon_sw_control(ext, false);
 
 	return 0;
