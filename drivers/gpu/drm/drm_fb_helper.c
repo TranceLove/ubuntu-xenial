@@ -155,6 +155,8 @@ int drm_fb_helper_add_one_connector(struct drm_fb_helper *fb_helper, struct drm_
 {
 	struct drm_fb_helper_connector **temp;
 	struct drm_fb_helper_connector *fb_helper_connector;
+	struct drm_crtc *crtc = connector->encoder ?
+							connector->encoder->crtc : NULL;
 
 	if (!drm_fbdev_emulation)
 		return 0;
@@ -176,6 +178,11 @@ int drm_fb_helper_add_one_connector(struct drm_fb_helper *fb_helper, struct drm_
 
 	drm_connector_reference(connector);
 	fb_helper_connector->connector = connector;
+	if (crtc && crtc->primary->state)
+		fb_helper_connector->rotation = crtc->primary->state->rotation;
+	if (!fb_helper_connector->rotation)
+		fb_helper_connector->rotation = DRM_ROTATE_0;
+
 	fb_helper->connector_info[fb_helper->connector_count++] = fb_helper_connector;
 	return 0;
 }
@@ -329,6 +336,35 @@ int drm_fb_helper_debug_leave(struct fb_info *info)
 }
 EXPORT_SYMBOL(drm_fb_helper_debug_leave);
 
+static int fbdev_plane_index(struct drm_fb_helper *fb_helper,
+			     struct drm_plane *plane)
+{
+	int i;
+
+	if (plane->type != DRM_PLANE_TYPE_PRIMARY)
+		return -ENODEV;
+
+	for (i = 0; i < fb_helper->crtc_count; i++) {
+		struct drm_crtc *crtc = fb_helper->crtc_info[i].mode_set.crtc;
+
+		if (crtc && crtc->primary == plane)
+			return i;
+	}
+
+	return -ENODEV;
+}
+
+static unsigned int fbdev_plane_rotation(struct drm_fb_helper *fb_helper,
+					 struct drm_plane *plane)
+{
+	int i = fbdev_plane_index(fb_helper, plane);
+
+	if (i < 0)
+		return DRM_ROTATE_0;
+	else
+		return fb_helper->crtc_info[i].rotation;
+}
+
 static int restore_fbdev_mode_atomic(struct drm_fb_helper *fb_helper)
 {
 	struct drm_device *dev = fb_helper->dev;
@@ -353,7 +389,7 @@ retry:
 			goto fail;
 		}
 
-		plane_state->rotation = DRM_ROTATE_0;
+		plane_state->rotation = fbdev_plane_rotation(fb_helper, plane);
 
 		plane->old_fb = plane->fb;
 		plane_mask |= 1 << drm_plane_index(plane);
@@ -411,7 +447,7 @@ static int restore_fbdev_mode(struct drm_fb_helper *fb_helper)
 		if (plane->rotation_property)
 			drm_mode_plane_set_obj_prop(plane,
 						    plane->rotation_property,
-						    DRM_ROTATE_0);
+						    fbdev_plane_rotation(fb_helper, plane));
 	}
 
 	for (i = 0; i < fb_helper->crtc_count; i++) {
@@ -2084,7 +2120,13 @@ static int drm_pick_crtcs(struct drm_fb_helper *fb_helper,
 
 			if (!drm_mode_equal(modes[o], modes[n]))
 				continue;
+
+			if (crtc->rotation &&
+			    crtc->rotation != fb_helper_conn->rotation)
+				continue;
 		}
+
+		crtc->rotation = fb_helper_conn->rotation;
 
 		crtcs[n] = crtc;
 		memcpy(crtcs, best_crtcs, n * sizeof(struct drm_fb_helper_crtc *));
@@ -2176,6 +2218,8 @@ static void drm_setup_crtcs(struct drm_fb_helper *fb_helper,
 			fb_crtc->desired_mode = mode;
 			fb_crtc->x = offset->x;
 			fb_crtc->y = offset->y;
+			fb_crtc->rotation =
+					fb_helper->connector_info[i]->rotation;
 			modeset->mode = drm_mode_duplicate(dev,
 							   fb_crtc->desired_mode);
 			drm_connector_reference(connector);
