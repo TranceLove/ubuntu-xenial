@@ -4208,6 +4208,8 @@ struct brcmf_sdio *brcmf_sdio_probe(struct brcmf_sdio_dev *sdiodev)
 	if (ret)
 		goto fail;
 
+	brcmf_info("Loading firmware %s for chip %08x rev %08x\n",
+				sdiodev->fw_name, bus->ci->chip, bus->ci->chiprev);
 	ret = brcmf_fw_get_firmwares(sdiodev->dev, BRCMF_FW_REQUEST_NVRAM,
 				     sdiodev->fw_name, sdiodev->nvram_name,
 				     brcmf_sdio_firmware_callback);
@@ -4303,4 +4305,3 @@ int brcmf_sdio_sleep(struct brcmf_sdio *bus, bool sleep)
 
 	return ret;
 }
-
